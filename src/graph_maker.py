@@ -6,6 +6,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.signal import firwin, filtfilt
 import matplotlib
+import os
+import sys
+import json
 matplotlib.rc('font', family='Noto Sans CJK JP')
 
 # 関数
@@ -14,10 +17,40 @@ def sort_key(file):
     num = int(re.search(r'auto\$(\d+).csv', file).group(1))
     return num
 
+# 設定ファイルの読み込み
+def load_config():
+    app_name = "graph_maker"
+    config_filename = "config.json"
+
+    if sys.platform.startswith("win"):
+        app_data_folder = os.getenv("APPDATA")
+        config_folder = os.path.join(app_data_folder, app_name)
+    elif sys.platform.startswith("darwin"):
+        app_support_folder = os.path.join(os.path.expanduser("~"), "Library", "Application Support")
+        config_folder = os.path.join(app_support_folder, app_name)
+    else:
+        raise RuntimeError("Unsupported platform")
+
+    if not os.path.exists(config_folder):
+        os.makedirs(config_folder)
+
+    config_file_path = os.path.join(config_folder, config_filename)
+    
+    if os.path.exists(config_file_path):
+        with open(config_file_path, 'r') as config_file:
+            config = json.load(config_file)
+    else:
+        config = {
+            'friction_scale': 1.0,
+            'amp_scale': 1.0,
+            'load': 9.8,
+        }
+    return config
+
 #GUI
 layout = [
     [sg.Text("参照フォルダ"), sg.InputText(size=(100,1)), sg.FolderBrowse(initial_folder='$HOME', key='ref')],
-    [sg.Text("摩擦力公正係数"), sg.InputText(key='fric',size=(20,1)),sg.Text('振幅公正係数'), sg.InputText(key='amp',size=(20,1)), sg.Text('荷重'), sg.InputText(key='load',size=(20,1))],
+    [sg.Text('荷重'), sg.InputText(key='load',size=(20,1))],
     [sg.Text("", size=(100, 1), key="status")],
     [sg.Submit(), sg.Cancel()],
 ]
@@ -26,10 +59,10 @@ window = sg.Window("フォルダ選択", layout)
 
 event, values = window.read()
 
-# 変数
-##摩擦力
-friction_scale = float(values['fric'])
-amp_scale = float(values['amp'])
+# 設定を読み込む
+config = load_config()
+friction_scale = float(config['friction_scale'])
+amp_scale = float(config['amp_scale'])
 load = float(values['load'])
 
 
