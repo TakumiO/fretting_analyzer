@@ -2,10 +2,8 @@ import glob
 import pandas as pd
 import PySimpleGUI as sg
 import re
-import functools
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.fft import fft, ifft
 from scipy.signal import firwin, filtfilt
 import matplotlib
 matplotlib.rc('font', family='Noto Sans CJK JP')
