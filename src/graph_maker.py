@@ -1,5 +1,6 @@
 import matplotlib
 matplotlib.use('TkAgg')
+import matplotlib.backends.backend_pdf
 
 import glob
 import pandas as pd
@@ -63,11 +64,16 @@ layout = [
         sg.FolderBrowse(initial_folder='$HOME', button_text="フォルダ選択")
     ],
     [
+        sg.Text("保存フォルダ:", size=(15, 1)),
+        sg.InputText(size=(50, 1), key='save'),
+        sg.FolderBrowse(initial_folder='$HOME', button_text="フォルダ選択")
+    ],
+    [
         sg.Text("荷重:", size=(15, 1)),
         sg.InputText(key='load', size=(20, 1))
     ],
     [
-        sg.Text("", size=(100, 1), key="status")
+        sg.Text("", size=(65, 1), key="status")
     ],
     [
         sg.Button("実行", key="Submit"),
@@ -84,6 +90,7 @@ config = load_config()
 friction_scale = float(config['friction_scale'])
 amp_scale = float(config['amp_scale'])
 load = float(values['load'])
+save_path = values['save']
 
 
 # 実行部分

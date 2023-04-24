@@ -1,0 +1,6 @@
+font.family: Noto Sans CJK JP
+font.serif: Noto Sans CJK JP, DejaVu Serif
+font.sans-serif: Noto Sans CJK JP, DejaVu Sans
+font.monospace: Noto Sans CJK JP, DejaVu Sans Mono
+font.cursive: Noto Sans CJK JP, DejaVu Sans
+backend: TkAgg
