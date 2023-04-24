@@ -1,3 +1,6 @@
+import matplotlib
+matplotlib.use('TkAgg')
+
 import glob
 import pandas as pd
 import PySimpleGUI as sg
@@ -5,10 +8,10 @@ import re
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.signal import firwin, filtfilt
-import matplotlib
 import os
 import sys
 import json
+font_dir = os.path.join(os.path.dirname(matplotlib.__file__), "mpl-data", "fonts", "ttf")
 matplotlib.rc('font', family='Noto Sans CJK JP')
 
 # 関数
@@ -17,11 +20,13 @@ def sort_key(file):
     num = int(re.search(r'auto\$(\d+).csv', file).group(1))
     return num
 
-# 設定ファイルの読み込み
+## 設定ファイルの読み込み
 def load_config():
+    # 設定ファイルのフォルダと名前を決定する
     app_name = "graph_maker"
     config_filename = "config.json"
 
+    # Windows か Mac かを判定する
     if sys.platform.startswith("win"):
         app_data_folder = os.getenv("APPDATA")
         config_folder = os.path.join(app_data_folder, app_name)
@@ -34,12 +39,15 @@ def load_config():
     if not os.path.exists(config_folder):
         os.makedirs(config_folder)
 
+    # 設定ファイルのパスを決定する
     config_file_path = os.path.join(config_folder, config_filename)
     
+    # 設定ファイルを読み込む
     if os.path.exists(config_file_path):
         with open(config_file_path, 'r') as config_file:
             config = json.load(config_file)
     else:
+        # 設定ファイルがない場合はデフォルト値を使う
         config = {
             'friction_scale': 1.0,
             'amp_scale': 1.0,
@@ -49,13 +57,25 @@ def load_config():
 
 #GUI
 layout = [
-    [sg.Text("参照フォルダ"), sg.InputText(size=(100,1)), sg.FolderBrowse(initial_folder='$HOME', key='ref')],
-    [sg.Text('荷重'), sg.InputText(key='load',size=(20,1))],
-    [sg.Text("", size=(100, 1), key="status")],
-    [sg.Submit(), sg.Cancel()],
+    [
+        sg.Text("参照フォルダ:", size=(15, 1)),
+        sg.InputText(size=(50, 1), key='ref'),
+        sg.FolderBrowse(initial_folder='$HOME', button_text="フォルダ選択")
+    ],
+    [
+        sg.Text("荷重:", size=(15, 1)),
+        sg.InputText(key='load', size=(20, 1))
+    ],
+    [
+        sg.Text("", size=(100, 1), key="status")
+    ],
+    [
+        sg.Button("実行", key="Submit"),
+        sg.Button("キャンセル", key="Cancel")
+    ]
 ]
 
-window = sg.Window("フォルダ選択", layout)
+window = sg.Window("graph_maker", layout, margins=(20, 20))
 
 event, values = window.read()
 
@@ -68,18 +88,17 @@ load = float(values['load'])
 
 # 実行部分
 if event == "Submit":
+    # ファイルの検索
     path = values['ref'] + '/*.csv'
     files = glob.glob(path)
     files.sort(key=sort_key)
     number_of_files = len(files)
     # データ・摩擦力・振幅の初期化
     data = dict()
-    force_raw = dict()
-    amp_raw = dict()
     # 試験結果読み込み
     for i, file_path in enumerate(files):
-        window["status"].update(f"読み込み中: auto${i}.csv")
-        data[i] = pd.read_csv(file_path, header=41, skipfooter=3, encoding='shift-jis', engine='python')
+        window["status"].update(f"読み込み中: auto${i}.csv/auto${number_of_files}.csv")
+        data[i] = pd.read_csv(file_path, header=41, skipfooter=3, encoding='shift-jis', engine='python', usecols=['日時(μs)','(1)HA-V01','(1)HA-V02','(1)HA-V04','(1)HA-V06'])
         window.refresh()
     window["status"].update("読み込み完了")
     window.refresh()
@@ -96,21 +115,23 @@ if event == "Submit":
     sampling_rate = round((int(data[1]['日時(μs)'][3]) - int(data[1]['日時(μs)'][2])))*1e-6
     window['status'].update(f'サンプリングレート取得完了: {sampling_rate*1e6}[μs]')
     window.refresh()
-    # 摩擦力と振幅を平滑化して摩擦力と振幅の公正化および湿度の平均的取得
+    # 摩擦係数と相対振幅を算出
+    ## 摩擦力と振幅の平滑化
     number_of_data = len(data[0])
     t = np.arange(0, number_of_data*sampling_rate, sampling_rate)
-    ## ローパスフィルターの設計
+    ### ローパスフィルターの設計
     cutoff_freq = motor_freq
     nyquist_rate = 1 / (2 * t[1])
     num_taps = 101  # タップ数（フィルターの長さ）
     lpf = firwin(num_taps, cutoff_freq, window="hamming", fs=nyquist_rate * 2)
+    # 摩擦係数と相対振幅・相対湿度の初期化
     CoF = []
     Amp = []
     Humidity = []
     for i in range(number_of_files):
         # force, ampのFFT
         # force_fft, amp_fftの初期化、
-        window['status'].update(f'摩擦力と振幅を平滑化中: auto${i}.csv')
+        window['status'].update(f'摩擦係数と相対振幅を算出中: auto${i}.csv/auto${number_of_files}.csv')
         force = []
         amp = []
         window.refresh()
@@ -144,7 +165,7 @@ if event == "Submit":
     ax2.legend(markerscale = 5, frameon = False, loc = "upper right", bbox_to_anchor = (1 ,0.9))
     window['status'].update(f'グラフ作成完了')
     window.refresh()
+    plt.ion()
     fig.show()
-    
 event, values = window.read()
 window.close()
