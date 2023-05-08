@@ -8,12 +8,12 @@ import PySimpleGUI as sg
 import re
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.font_manager as fm
+
 from scipy.signal import firwin, filtfilt
 import os
 import sys
 import json
-font_dir = os.path.join(os.path.dirname(matplotlib.__file__), "mpl-data", "fonts", "ttf")
-matplotlib.rc('font', family='Noto Sans CJK JP')
 
 # 関数
 ## ファイル名のソート関数
@@ -89,9 +89,20 @@ event, values = window.read()
 config = load_config()
 friction_scale = float(config['friction_scale'])
 amp_scale = float(config['amp_scale'])
-load = float(values['load'])
+# load の値が空の文字列であるかどうかをチェック
+if values['load'] == '':
+    load = 9.8
+else:
+    load = float(values['load'])
 save_path = values['save']
 
+# フォントの指定
+if sys.platform.startswith('win'):
+    matplotlib.rc('font', family='Meiryo')
+elif sys.platform.startswith('darwin'):
+    matplotlib.rc('font', family='Hiragino Kaku Gothic Pro')
+else:
+    raise RuntimeError("Unsupported platform")
 
 # 実行部分
 if event == "Submit":
@@ -176,3 +187,7 @@ if event == "Submit":
     fig.show()
 event, values = window.read()
 window.close()
+
+# キャンセルボタンで終了
+if event == "Cancel":
+    sys.exit()
