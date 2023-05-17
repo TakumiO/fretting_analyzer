@@ -1,6 +1,8 @@
+# -*- coding: utf-8 -*-
+
 import matplotlib
-matplotlib.use('TkAgg')
 import matplotlib.backends.backend_pdf
+matplotlib.use('pdf')
 
 import glob
 import pandas as pd
@@ -14,6 +16,14 @@ from scipy.signal import firwin, filtfilt
 import os
 import sys
 import json
+
+# フォントの指定
+if sys.platform.startswith('win'):
+    matplotlib.rc('font', family='Yu Gothic')
+elif sys.platform.startswith('darwin'):
+    matplotlib.rc('font', family='BIZ UDGothic')
+else:
+    raise RuntimeError("Unsupported platform")
 
 # 関数
 ## ファイル名のソート関数
@@ -96,13 +106,6 @@ else:
     load = float(values['load'])
 save_path = values['save']
 
-# フォントの指定
-if sys.platform.startswith('win'):
-    matplotlib.rc('font', family='Meiryo')
-elif sys.platform.startswith('darwin'):
-    matplotlib.rc('font', family='Hiragino Kaku Gothic Pro')
-else:
-    raise RuntimeError("Unsupported platform")
 
 # 実行部分
 if event == "Submit":
@@ -183,8 +186,12 @@ if event == "Submit":
     ax2.legend(markerscale = 5, frameon = False, loc = "upper right", bbox_to_anchor = (1 ,0.9))
     window['status'].update(f'グラフ作成完了')
     window.refresh()
-    plt.ion()
-    fig.show()
+    # グラフの保存
+    window['status'].update(f'グラフを保存中')
+    window.refresh()
+    fig.savefig(f'{values["save"]}/result.pdf', bbox_inches='tight')
+    window['status'].update(f'グラフを保存完了')
+    window.refresh()
 event, values = window.read()
 window.close()
 
