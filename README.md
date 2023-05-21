@@ -1,24 +1,57 @@
 # 摩擦力・振幅・湿度データ解析アプリ
 
-このアプリは、CSVファイルから摩擦力、振幅、湿度データを解析し、摩擦係数、相対振幅、相対湿度を求めるためのPythonアプリケーションです。GUIを用いてフォルダを選択し、解析結果をグラフで表示します。
+## TL;DR
 
-## 必要なライブラリ
+このアプリケーションは、NR-500から出力された電圧から摩擦力・振幅・湿度データを解析して経時変化のグラフを作成するアプリケーションです。
 
-- pandas
-- numpy
+## 必要なもの
+
+- Python (3.10以上が望ましい)
+- 後述するライブラリ
+- VSCode (任意)
+
+## ライブラリのインストール
+
+このアプリケーションを実行するには、以下のライブラリが必要です。
+
 - matplotlib
-- scipy
+- numpy
+- pandas
 - PySimpleGUI
-- glob
-- re
+- scipy
 
-## 使い方
+素早くインストールするには、以下のコマンドを実行してください。
 
-1. 必要なライブラリをインストールします。
-2. アプリケーションを起動します。
-3. 解析したいフォルダを選択します。
-4. プログラムが実行され、解析結果がグラフで表示されます。
+### condaを使う場合
 
-## 注意事項
+```bash
+conda env create -f macros_gui.yml
+```
 
-- CSVファイルはNR-500から出力されたものであることを確認してください。
+### condaを使わない場合
+
+```bash
+pip install -r pip_requirements.txt
+```
+
+## VS Codeの拡張機能
+
+VS Codeを使う場合、以下の拡張機能をインストールすると便利です。
+
+- [Python](https://marketplace.visualstudio.com/items?itemName=ms-python.python)
+- [Python Environment Manager](https://marketplace.visualstudio.com/items?itemName=donjayamanne.python-environment-manager)
+
+## VS Codeで実行
+
+VS Codeでこのアプリケーションを実行するには、以下の手順を実行してください。
+
+1. VS Codeでフォルダを開く。
+2. 実行したいPythonファイルを開く。
+3. 「実行とデバッグ」パネルを開く。
+4. 再生ボタンを押してコードを実行する。
+
+### 公正係数の設定
+
+このアプリケーションを初めて実行する場合、または新たに公正係数を設定する場合は'`constant_configure.py`'を実行してください。
+
+
