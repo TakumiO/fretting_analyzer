@@ -136,7 +136,7 @@ if event == "Submit":
     sampling_rate = round((int(data[1]['日時(μs)'][3]) - int(data[1]['日時(μs)'][2])))*1e-6
     window['status'].update(f'サンプリングレート取得完了: {sampling_rate*1e6}[μs]')
     window.refresh()
-    # 摩擦係数と相対振幅を算出
+    # せん断力係数と相対振幅を算出
     ## 摩擦力と振幅の平滑化
     number_of_data = len(data[0])
     t = np.arange(0, number_of_data*sampling_rate, sampling_rate)
@@ -145,14 +145,14 @@ if event == "Submit":
     nyquist_rate = 1 / (2 * t[1])
     num_taps = 101  # タップ数（フィルターの長さ）
     lpf = firwin(num_taps, cutoff_freq, window="hamming", fs=nyquist_rate * 2)
-    # 摩擦係数と相対振幅・相対湿度の初期化
+    # せん断力係数と相対振幅・相対湿度の初期化
     CoF = []
     Amp = []
     Humidity = []
     for i in range(number_of_files):
         # force, ampのFFT
         # force_fft, amp_fftの初期化、
-        window['status'].update(f'摩擦係数と相対振幅を算出中: auto${i}.csv/auto${number_of_files}.csv')
+        window['status'].update(f'せん断力係数と相対振幅を算出中: auto${i}.csv/auto${number_of_files}.csv')
         force = []
         amp = []
         window.refresh()
@@ -177,9 +177,9 @@ if event == "Submit":
     ax2.set_ylim(0, 100)
     ax1.grid(True, which='major', axis='y', color='gray', linestyle='--', linewidth=0.5)
     ax1.set_xlabel("繰り返し数")
-    ax1.set_ylabel("摩擦係数[-]")
+    ax1.set_ylabel("せん断力係数[-]")
     ax2.set_ylabel(r"相対振幅[$\mu$m], 湿度[%]")
-    ax1.scatter(x, CoF, s=0.1, label='摩擦係数' , c="#B84644")
+    ax1.scatter(x, CoF, s=0.1, label='せん断力係数' , c="#B84644")
     ax2.scatter(x, Amp, s=0.1, label='相対振幅', c="#90B34F")
     ax2.scatter(x, Humidity, s=0.1, label='相対湿度' , c="#4676B5")
     ax1.legend(markerscale = 5, frameon = False, loc = "upper right")
@@ -189,9 +189,15 @@ if event == "Submit":
     # グラフの保存
     window['status'].update(f'グラフを保存中')
     window.refresh()
-    fig.savefig(f'{values["save"]}/result.pdf', bbox_inches='tight')
+    fig.savefig(f'{values["save"]}/result/result.pdf', bbox_inches='tight')
     window['status'].update(f'グラフを保存完了')
     window.refresh()
+    # csvファイルの出力
+    ## データフレームの作成
+    window['status'].update(f'csvファイルを出力中')
+    df_result = pd.DataFrame({'繰り返し数': x, 'せん断力係数': CoF, '相対振幅': Amp, '相対湿度': Humidity})
+    ## csvファイルの保存
+    df_result.to_csv(f'{values["save"]}/result/result.csv', index=False)
 event, values = window.read()
 window.close()
 
