@@ -1,12 +1,46 @@
 # -*- coding: utf-8 -*-
 
+import PySimpleGUI as sg
+#GUI
+layout = [
+    [
+        sg.Text("参照フォルダ:", size=(15, 1)),
+        sg.InputText(size=(50, 1), key='ref'),
+        sg.FolderBrowse(initial_folder='$HOME', button_text="フォルダ選択")
+    ],
+    [
+        sg.Text("保存フォルダ:", size=(15, 1)),
+        sg.InputText(size=(50, 1), key='save'),
+        sg.FolderBrowse(initial_folder='$HOME', button_text="フォルダ選択")
+    ],
+    [
+        sg.Text("荷重:", size=(15, 1)),
+        sg.InputText(key='load', size=(20, 1))
+    ],
+    [
+        sg.Text("", size=(65, 1), key="status")
+    ],
+    [
+        sg.Button("実行", key="Submit"),
+        sg.Button("キャンセル", key="Cancel")
+    ]
+]
+
+window = sg.Window("graph_maker", layout, margins=(20, 20))
+
+event, values = window.read()
+
+import sys
+# キャンセルボタンで終了
+if event == "Cancel":
+    sys.exit()
+
 import matplotlib
 import matplotlib.backends.backend_pdf
 matplotlib.use('pdf')
 
 import glob
 import pandas as pd
-import PySimpleGUI as sg
 import re
 import numpy as np
 import matplotlib.pyplot as plt
@@ -14,7 +48,6 @@ import matplotlib.font_manager as fm
 
 from scipy.signal import firwin, filtfilt
 import os
-import sys
 import json
 
 # フォントの指定
@@ -65,35 +98,6 @@ def load_config():
             'load': 9.8,
         }
     return config
-
-#GUI
-layout = [
-    [
-        sg.Text("参照フォルダ:", size=(15, 1)),
-        sg.InputText(size=(50, 1), key='ref'),
-        sg.FolderBrowse(initial_folder='$HOME', button_text="フォルダ選択")
-    ],
-    [
-        sg.Text("保存フォルダ:", size=(15, 1)),
-        sg.InputText(size=(50, 1), key='save'),
-        sg.FolderBrowse(initial_folder='$HOME', button_text="フォルダ選択")
-    ],
-    [
-        sg.Text("荷重:", size=(15, 1)),
-        sg.InputText(key='load', size=(20, 1))
-    ],
-    [
-        sg.Text("", size=(65, 1), key="status")
-    ],
-    [
-        sg.Button("実行", key="Submit"),
-        sg.Button("キャンセル", key="Cancel")
-    ]
-]
-
-window = sg.Window("graph_maker", layout, margins=(20, 20))
-
-event, values = window.read()
 
 # 設定を読み込む
 config = load_config()
@@ -200,7 +204,3 @@ if event == "Submit":
     df_result.to_csv(f'{values["save"]}/result/result.csv', index=False)
 event, values = window.read()
 window.close()
-
-# キャンセルボタンで終了
-if event == "Cancel":
-    sys.exit()
