@@ -100,6 +100,8 @@ def load_config():
     return config
 
 # 設定を読み込む
+window["status"].update("設定を読み込み中")
+window.refresh()
 config = load_config()
 friction_scale = float(config['friction_scale'])
 amp_scale = float(config['amp_scale'])
@@ -109,7 +111,8 @@ if values['load'] == '':
 else:
     load = float(values['load'])
 save_path = values['save']
-
+window["status"].update("設定の読み込み完了")
+window.refresh()
 
 # 実行部分
 if event == "Submit":
