@@ -35,6 +35,10 @@ import sys
 if event == "Cancel":
     sys.exit()
 
+
+window["status"].update("準備中")
+window.refresh()
+
 import matplotlib
 import matplotlib.backends.backend_pdf
 matplotlib.use('pdf')
@@ -100,8 +104,7 @@ def load_config():
     return config
 
 # 設定を読み込む
-window["status"].update("設定を読み込み中")
-window.refresh()
+
 config = load_config()
 friction_scale = float(config['friction_scale'])
 amp_scale = float(config['amp_scale'])
@@ -111,7 +114,7 @@ if values['load'] == '':
 else:
     load = float(values['load'])
 save_path = values['save']
-window["status"].update("設定の読み込み完了")
+window["status"].update("準備完了")
 window.refresh()
 
 # 実行部分
@@ -196,14 +199,16 @@ if event == "Submit":
     # グラフの保存
     window['status'].update(f'グラフを保存中')
     window.refresh()
-    fig.savefig(f'{values["save"]}/result/result.pdf', bbox_inches='tight')
+    fig.savefig(f'{values["save"]}/result.pdf', bbox_inches='tight')
     window['status'].update(f'グラフを保存完了')
     window.refresh()
     # csvファイルの出力
     ## データフレームの作成
-    window['status'].update(f'csvファイルを出力中')
+    window['status'].update(f'csvファイルを保存中')
+    window.refresh()
     df_result = pd.DataFrame({'繰り返し数': x, 'せん断力係数': CoF, '相対振幅': Amp, '相対湿度': Humidity})
     ## csvファイルの保存
-    df_result.to_csv(f'{values["save"]}/result/result.csv', index=False)
+    df_result.to_csv(f'{values["save"]}/result.csv', index=False)
+    window['status'].update(f'csvファイルを保存完了')
 event, values = window.read()
 window.close()
