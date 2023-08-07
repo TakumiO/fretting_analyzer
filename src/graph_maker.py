@@ -68,46 +68,7 @@ def sort_key(file):
     num = int(re.search(r'auto\$(\d+).csv', file).group(1))
     return num
 
-## 設定ファイルの読み込み
-def load_config():
-    # 設定ファイルのフォルダと名前を決定する
-    app_name = "graph_maker"
-    config_filename = "config.json"
 
-    # Windows か Mac かを判定する
-    if sys.platform.startswith("win"):
-        app_data_folder = os.getenv("APPDATA")
-        config_folder = os.path.join(app_data_folder, app_name)
-    elif sys.platform.startswith("darwin"):
-        app_support_folder = os.path.join(os.path.expanduser("~"), "Library", "Application Support")
-        config_folder = os.path.join(app_support_folder, app_name)
-    else:
-        raise RuntimeError("Unsupported platform")
-
-    if not os.path.exists(config_folder):
-        os.makedirs(config_folder)
-
-    # 設定ファイルのパスを決定する
-    config_file_path = os.path.join(config_folder, config_filename)
-    
-    # 設定ファイルを読み込む
-    if os.path.exists(config_file_path):
-        with open(config_file_path, 'r') as config_file:
-            config = json.load(config_file)
-    else:
-        # 設定ファイルがない場合はデフォルト値を使う
-        config = {
-            'friction_scale': 1.0,
-            'amp_scale': 1.0,
-            'load': 9.8,
-        }
-    return config
-
-# 設定を読み込む
-
-config = load_config()
-friction_scale = float(config['friction_scale'])
-amp_scale = float(config['amp_scale'])
 # load の値が空の文字列であるかどうかをチェック
 if values['load'] == '':
     load = 9.8
@@ -170,8 +131,8 @@ if event == "Submit":
         amp.extend(data[i]['(1)HA-V02'])
         force = filtfilt(lpf, 1, force)
         amp = filtfilt(lpf, 1, amp)
-        CoF.append((max(force) - min(force)) * friction_scale / load)
-        Amp.append((max(amp) - min(amp)) * amp_scale)
+        CoF.append((max(force) - min(force)) / load)
+        Amp.append((max(amp) - min(amp)))
         Humidity.append(np.mean(data[i]['(1)HA-V06'])*10)
     window.refresh()
         
