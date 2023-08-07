@@ -35,7 +35,6 @@ import sys
 if event == "Cancel":
     sys.exit()
 
-
 window["status"].update("準備中")
 window.refresh()
 
@@ -69,13 +68,54 @@ def sort_key(file):
     return num
 
 
+## 設定ファイルの読み込み
+def load_config():
+    # 設定ファイルのフォルダと名前を決定する
+    app_name = "graph_maker"
+    config_filename = "config.json"
+
+    # Windows か Mac かを判定する
+    if sys.platform.startswith("win"):
+        app_data_folder = os.getenv("APPDATA")
+        config_folder = os.path.join(app_data_folder, app_name)
+    elif sys.platform.startswith("darwin"):
+        app_support_folder = os.path.join(os.path.expanduser("~"), "Library", "Application Support")
+        config_folder = os.path.join(app_support_folder, app_name)
+    else:
+        raise RuntimeError("Unsupported platform")
+
+    if not os.path.exists(config_folder):
+        os.makedirs(config_folder)
+
+    # 設定ファイルのパスを決定する
+    config_file_path = os.path.join(config_folder, config_filename)
+    
+    # 設定ファイルを読み込む
+    if os.path.exists(config_file_path):
+        with open(config_file_path, 'r') as config_file:
+            config = json.load(config_file)
+    else:
+        # 設定ファイルがない場合はデフォルト値を使う
+        config = {
+            'friction_scale': 1.0,
+            'amp_scale': 1.0,
+            'load': 9.8,
+        }
+    return config
+
+# 設定を読み込む
+window["status"].update("設定を読み込み中")
+window.refresh()
+config = load_config()
+friction_scale = float(config['friction_scale'])
+amp_scale = float(config['amp_scale'])
 # load の値が空の文字列であるかどうかをチェック
 if values['load'] == '':
     load = 9.8
 else:
     load = float(values['load'])
 save_path = values['save']
-window["status"].update("準備完了")
+window["status"].update("設定の読み込み完了")
 window.refresh()
 
 # 実行部分
@@ -131,8 +171,8 @@ if event == "Submit":
         amp.extend(data[i]['(1)HA-V02'])
         force = filtfilt(lpf, 1, force)
         amp = filtfilt(lpf, 1, amp)
-        CoF.append((max(force) - min(force)) / load)
-        Amp.append((max(amp) - min(amp)))
+        CoF.append((max(force) - min(force)) * friction_scale / load)
+        Amp.append((max(amp) - min(amp))  * amp_scale)
         Humidity.append(np.mean(data[i]['(1)HA-V06'])*10)
     window.refresh()
         
@@ -160,16 +200,14 @@ if event == "Submit":
     # グラフの保存
     window['status'].update(f'グラフを保存中')
     window.refresh()
-    fig.savefig(f'{values["save"]}/result.pdf', bbox_inches='tight')
+    fig.savefig(f'{values["save"]}/result/result.pdf', bbox_inches='tight')
     window['status'].update(f'グラフを保存完了')
     window.refresh()
     # csvファイルの出力
     ## データフレームの作成
-    window['status'].update(f'csvファイルを保存中')
-    window.refresh()
+    window['status'].update(f'csvファイルを出力中')
     df_result = pd.DataFrame({'繰り返し数': x, 'せん断力係数': CoF, '相対振幅': Amp, '相対湿度': Humidity})
     ## csvファイルの保存
-    df_result.to_csv(f'{values["save"]}/result.csv', index=False)
-    window['status'].update(f'csvファイルを保存完了')
+    df_result.to_csv(f'{values["save"]}/result/result.csv', index=False)
 event, values = window.read()
 window.close()
