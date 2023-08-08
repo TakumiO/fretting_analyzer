@@ -171,8 +171,18 @@ if event == "Submit":
         amp.extend(data[i]['(1)HA-V02'])
         force = filtfilt(lpf, 1, force)
         amp = filtfilt(lpf, 1, amp)
-        CoF.append((max(force) - min(force)) * friction_scale / load)
-        Amp.append((max(amp) - min(amp))  * amp_scale)
+        # forceの計算
+        force_sorted_desc = np.sort(force)[::-1]  # 降順にソート
+        force_sorted_asc = np.sort(force)         # 昇順にソート
+        force_max = np.average(force_sorted_desc[:20])
+        force_min = np.average(force_sorted_asc[:20])
+        # ampの計算
+        amp_sorted_desc = np.sort(amp)[::-1]      # 降順にソート
+        amp_sorted_asc = np.sort(amp)             # 昇順にソート
+        amp_max = np.average(amp_sorted_desc[:20])
+        amp_min = np.average(amp_sorted_asc[:20])
+        CoF.append((force_max - force_min) * friction_scale / load)
+        Amp.append((amp_max - amp_min)  * amp_scale)
         Humidity.append(np.mean(data[i]['(1)HA-V06'])*10)
     window.refresh()
         
@@ -200,7 +210,7 @@ if event == "Submit":
     # グラフの保存
     window['status'].update(f'グラフを保存中')
     window.refresh()
-    fig.savefig(f'{values["save"]}/result/result.pdf', bbox_inches='tight')
+    fig.savefig(f'{values["save"]}/result.pdf', bbox_inches='tight')
     window['status'].update(f'グラフを保存完了')
     window.refresh()
     # csvファイルの出力
@@ -208,6 +218,6 @@ if event == "Submit":
     window['status'].update(f'csvファイルを出力中')
     df_result = pd.DataFrame({'繰り返し数': x, 'せん断力係数': CoF, '相対振幅': Amp, '相対湿度': Humidity})
     ## csvファイルの保存
-    df_result.to_csv(f'{values["save"]}/result/result.csv', index=False)
+    df_result.to_csv(f'{values["save"]}/result.csv', index=False)
 event, values = window.read()
 window.close()
