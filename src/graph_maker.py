@@ -130,21 +130,23 @@ if event == "Submit":
     # 試験結果読み込み
     for i, file_path in enumerate(files):
         window["status"].update(f"読み込み中: auto${i}.csv/auto${number_of_files}.csv")
-        data[i] = pd.read_csv(file_path, header=41, skipfooter=3, encoding='shift-jis', engine='python', usecols=['日時(μs)','(1)HA-V01','(1)HA-V02','(1)HA-V04','(1)HA-V06'])
+        data[i] = pd.read_csv(file_path, header=41, skipfooter=3, encoding='shift-jis', engine='python', usecols=['(1)HA-V01','(1)HA-V02','(1)HA-V06'])
         window.refresh()
+    # 実験条件の読み込み
+    condition_data_frame = pd.read_csv(files[round(number_of_files/2)], header=41, skipfooter=3, encoding='shift-jis', engine='python', usecols=['日時(μs)','(1)HA-V04'])
     window["status"].update("読み込み完了")
     window.refresh()
     # 試験条件の取得
     ## モーター振動数を取得
     window['status'].update('モーター振動数を取得中')
     window.refresh()
-    motor_freq = round(np.mean(data[round(number_of_files/2)]['(1)HA-V04'])*10)
+    motor_freq = round(np.mean(condition_data_frame['(1)HA-V04'])*10)
     window['status'].update(f'モーター振動数取得完了: {motor_freq}[Hz]')
     window.refresh()
     ## サンプリングレートを取得
     window['status'].update('サンプリングレートを取得中')
     window.refresh()
-    sampling_rate = round((int(data[1]['日時(μs)'][3]) - int(data[1]['日時(μs)'][2])))*1e-6
+    sampling_rate = round((int(condition_data_frame['日時(μs)'][3]) - int(condition_data_frame['日時(μs)'][2])))*1e-6
     window['status'].update(f'サンプリングレート取得完了: {sampling_rate*1e6}[μs]')
     window.refresh()
     # せん断力係数と相対振幅を算出
@@ -219,5 +221,6 @@ if event == "Submit":
     df_result = pd.DataFrame({'繰り返し数': x, 'せん断力係数': CoF, '相対振幅': Amp, '相対湿度': Humidity})
     ## csvファイルの保存
     df_result.to_csv(f'{values["save"]}/result.csv', index=False)
+    window['status'].update(f'csvファイルを出力完了')
 event, values = window.read()
 window.close()
