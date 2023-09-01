@@ -1,6 +1,17 @@
 # -*- coding: utf-8 -*-
 
 import PySimpleGUI as sg
+import matplotlib
+import matplotlib.backends.backend_pdf
+matplotlib.use('pdf')
+
+import glob
+import pandas as pd
+import re
+import numpy as np
+import matplotlib.pyplot as plt
+import scienceplots
+
 # GUIのレイアウト
 layout = [
     [
@@ -39,16 +50,6 @@ if event == "Cancel":
 window["status"].update("準備中")
 window.refresh()
 
-import matplotlib
-import matplotlib.backends.backend_pdf
-matplotlib.use('pdf')
-
-import glob
-import pandas as pd
-import re
-import numpy as np
-import matplotlib.pyplot as plt
-import scienceplots
 
 plt.style.use(["science", "ieee", "no-latex"])
 
