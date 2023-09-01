@@ -1,30 +1,31 @@
 # -*- coding: utf-8 -*-
 
 import PySimpleGUI as sg
-#GUI
+# GUIのレイアウト
 layout = [
     [
-        sg.Text("参照フォルダ:", size=(15, 1)),
-        sg.InputText(size=(50, 1), key='ref'),
+        sg.Text("参照フォルダ:", size=(15, 1), font=("Helvetica", 14)),
+        sg.InputText(size=(50, 1), key='ref', font=("Helvetica", 14)),
         sg.FolderBrowse(initial_folder='$HOME', button_text="フォルダ選択")
     ],
     [
-        sg.Text("保存フォルダ:", size=(15, 1)),
-        sg.InputText(size=(50, 1), key='save'),
+        sg.Text("保存フォルダ:", size=(15, 1), font=("Helvetica", 14)),
+        sg.InputText(size=(50, 1), key='save', font=("Helvetica", 14)),
         sg.FolderBrowse(initial_folder='$HOME', button_text="フォルダ選択")
     ],
     [
-        sg.Text("荷重:", size=(15, 1)),
-        sg.InputText(key='load', size=(20, 1))
+        sg.Text("荷重:", size=(15, 1), font=("Helvetica", 14)),
+        sg.InputText(key='load', size=(20, 1), font=("Helvetica", 14))
     ],
     [
-        sg.Text("", size=(65, 1), key="status")
+        sg.Text("", size=(65, 1), key="status", font=("Helvetica", 14))
     ],
     [
-        sg.Button("実行", key="Submit"),
-        sg.Button("キャンセル", key="Cancel")
+        sg.Button("実行", key="Submit", font=("Helvetica", 14)),
+        sg.Button("キャンセル", key="Cancel", font=("Helvetica", 14))
     ]
 ]
+
 
 window = sg.Window("graph_maker", layout, margins=(20, 20))
 
@@ -47,19 +48,13 @@ import pandas as pd
 import re
 import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib.font_manager as fm
+import scienceplots
+
+plt.style.use(["science", "ieee", "no-latex"])
 
 from scipy.signal import firwin, filtfilt
 import os
 import json
-
-# フォントの指定
-if sys.platform.startswith('win'):
-    matplotlib.rc('font', family='Yu Gothic')
-elif sys.platform.startswith('darwin'):
-    matplotlib.rc('font', family='BIZ UDGothic')
-else:
-    raise RuntimeError("Unsupported platform")
 
 # 関数
 ## ファイル名のソート関数
@@ -178,12 +173,12 @@ if event == "Submit":
         force_sorted_asc = np.sort(force)         # 昇順にソート
         force_max = np.average(force_sorted_desc[:20])
         force_min = np.average(force_sorted_asc[:20])
+        CoF.append((force_max - force_min) * friction_scale / load /2)
         # ampの計算
         amp_sorted_desc = np.sort(amp)[::-1]      # 降順にソート
         amp_sorted_asc = np.sort(amp)             # 昇順にソート
         amp_max = np.average(amp_sorted_desc[:20])
         amp_min = np.average(amp_sorted_asc[:20])
-        CoF.append((force_max - force_min) * friction_scale / load)
         Amp.append((amp_max - amp_min)  * amp_scale)
         Humidity.append(np.mean(data[i]['(1)HA-V06'])*10)
     window.refresh()
@@ -198,15 +193,13 @@ if event == "Submit":
     ax1.set_xlim(0, number_of_files*10)
     ax1.set_ylim(0, 2.0)
     ax2.set_ylim(0, 100)
-    ax1.grid(True, which='major', axis='y', color='gray', linestyle='--', linewidth=0.5)
-    ax1.set_xlabel("繰り返し数")
-    ax1.set_ylabel("せん断力係数[-]")
-    ax2.set_ylabel(r"相対振幅[$\mu$m], 湿度[%]")
-    ax1.scatter(x, CoF, s=0.1, label='せん断力係数' , c="#B84644")
-    ax2.scatter(x, Amp, s=0.1, label='相対振幅', c="#90B34F")
-    ax2.scatter(x, Humidity, s=0.1, label='相対湿度' , c="#4676B5")
-    ax1.legend(markerscale = 5, frameon = False, loc = "upper right")
-    ax2.legend(markerscale = 5, frameon = False, loc = "upper right", bbox_to_anchor = (1 ,0.9))
+    ax1.set_xlabel("Cycles[-]")
+    ax1.set_ylabel("Friction Coefficient[-]")
+    ax2.set_ylabel(r"Displacement[$\mu$m], Relative Humidity[%]")
+    ax1.plot(x, CoF, label='Friction Coefficient' , linestyle = "solid")
+    ax2.plot(x, Humidity, label='Relative Humidity' , linestyle = "dotted",)
+    ax2.plot(x, Amp, label='Displacement', linestyle = "dashdot",)
+    ax1.legend(handles=[ax1.lines[0], ax2.lines[0], ax2.lines[1]], loc='upper right')
     window['status'].update(f'グラフ作成完了')
     window.refresh()
     # グラフの保存
